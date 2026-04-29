@@ -1,405 +1,44 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>By Megi — Zlecenia</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, Arial, sans-serif; background: #f0ede8; color: #1a1a1a; font-size: 16px; }
-
-header { background: #1a1a1a; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-header h1 { font-size: 15px; font-weight: 700; letter-spacing: 2px; }
-header span { font-size: 12px; color: #888; }
-
-.tabs { display: flex; background: #fff; border-bottom: 2px solid #e0ddd7; }
-.tab { flex: 1; padding: 13px 4px; text-align: center; font-size: 13px; font-weight: 600; color: #999; background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; font-family: -apple-system, Arial, sans-serif; }
-.tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
-
-.page { display: none; padding: 16px; max-width: 540px; margin: 0 auto; }
-.page.active { display: block; }
-
-.field { margin-bottom: 13px; }
-.field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 5px; }
-.field input, .field textarea, .field select {
-  display: block; width: 100%; padding: 13px; border: 1.5px solid #e0ddd7; border-radius: 10px;
-  font-size: 16px; background: #fff; color: #1a1a1a; font-family: -apple-system, Arial, sans-serif;
-  -webkit-appearance: none; appearance: none;
-}
-.field textarea { min-height: 70px; resize: none; }
-.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: #1a1a1a; }
-
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 13px; }
-.row2 .field { margin: 0; }
-
-.status-row { display: flex; gap: 8px; margin-bottom: 13px; }
-.status-btn { flex: 1; padding: 10px 4px; border: 2px solid #e0ddd7; border-radius: 10px; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: -apple-system, Arial, sans-serif; text-align: center; color: #666; }
-.status-btn.aktywne.sel { background: #d4edda; border-color: #a8d5b5; color: #1a5c35; }
-.status-btn.wydane.sel { background: #fff3cd; border-color: #f0c040; color: #856404; }
-.status-btn.zwrocone.sel { background: #e0ddd7; border-color: #999; color: #333; }
-
-.btn { display: block; width: 100%; padding: 16px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: -apple-system, Arial, sans-serif; margin-top: 6px; }
-.btn:disabled { opacity: 0.5; }
-.btn-outline { background: #fff; color: #1a1a1a; border: 2px solid #1a1a1a; margin-top: 8px; }
-
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 999; display: none; }
-.toast.show { display: block; }
-.toast.error { background: #9b2226; }
-
-.search-wrap { margin-bottom: 12px; }
-.search-wrap input { width: 100%; padding: 11px 14px; border: 1.5px solid #e0ddd7; border-radius: 10px; font-size: 15px; font-family: -apple-system, Arial, sans-serif; background: #fff; -webkit-appearance: none; }
-
-.filter-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.filter-btn { flex-shrink: 0; padding: 7px 14px; border: 1.5px solid #e0ddd7; border-radius: 20px; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: -apple-system, Arial, sans-serif; color: #666; }
-.filter-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-
-.zlecenie-card { background: #fff; border: 1px solid #e0ddd7; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
-.zcard-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.zcard-name { font-size: 15px; font-weight: 700; }
-.zcard-tel { font-size: 12px; color: #999; margin-top: 2px; }
-.zcard-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
-.zcard-status.aktywne { background: #d4edda; color: #1a5c35; }
-.zcard-status.wydane { background: #fff3cd; color: #856404; }
-.zcard-status.zwrocone { background: #e0ddd7; color: #333; }
-.zcard-details { font-size: 13px; color: #666; display: flex; flex-direction: column; gap: 3px; }
-.zcard-details b { color: #1a1a1a; font-weight: 600; }
-.zcard-footer { display: flex; gap: 8px; margin-top: 10px; }
-.zcard-btn { flex: 1; padding: 8px; border: 1.5px solid #e0ddd7; border-radius: 8px; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: -apple-system, Arial, sans-serif; color: #1a1a1a; }
-.zcard-btn.danger { border-color: #f5b8b8; color: #9b2226; }
-
-.empty { text-align: center; padding: 50px 20px; color: #999; font-size: 14px; line-height: 1.6; }
-.loading { text-align: center; padding: 40px; color: #999; font-size: 14px; }
-
-.sync-info { font-size: 12px; color: #999; text-align: center; padding: 8px; }
-.sync-info.ok { color: #1a5c35; }
-.sync-info.err { color: #9b2226; }
-</style>
-</head>
-<body>
-
-<header>
-  <h1>✨ BY MEGI — ZLECENIA</h1>
-  <span id="sync-status">●</span>
-</header>
-
-<div class="tabs">
-  <button class="tab active" id="tab-btn-nowe">Nowe zlecenie</button>
-  <button class="tab" id="tab-btn-lista">Lista zleceń</button>
-</div>
-
-<div class="page active" id="page-nowe">
-  <div style="height:12px"></div>
-
-  <div class="field">
-    <label>Klient (imię i nazwisko)</label>
-    <input type="text" id="f-klient" placeholder="np. Anna Kowalska">
-  </div>
-  <div class="field">
-    <label>Telefon</label>
-    <input type="tel" id="f-telefon" placeholder="np. 600 123 456" inputmode="numeric">
-  </div>
-  <div class="field">
-    <label>Co bierze (produkty)</label>
-    <textarea id="f-co" placeholder="np. 50x krzesło chiavari złote, 5x świecznik wysoki..."></textarea>
-  </div>
-  <div class="row2">
-    <div class="field">
-      <label>Ilość (łącznie szt.)</label>
-      <input type="number" id="f-ilosc" placeholder="np. 55" inputmode="numeric">
-    </div>
-    <div class="field">
-      <label>Policzone (zł)</label>
-      <input type="number" id="f-policzone" placeholder="0" inputmode="numeric">
-    </div>
-  </div>
-  <div class="row2">
-    <div class="field">
-      <label>Zapłacone (zł)</label>
-      <input type="number" id="f-zaplacone" placeholder="0" inputmode="numeric">
-    </div>
-    <div class="field">
-      <label>Kaucja (zł)</label>
-      <input type="number" id="f-kaucja" placeholder="0" inputmode="numeric">
-    </div>
-  </div>
-  <div class="row2">
-    <div class="field">
-      <label>Data odbioru</label>
-      <input type="date" id="f-odbioru">
-    </div>
-    <div class="field">
-      <label>Data zwrotu</label>
-      <input type="date" id="f-zwrotu">
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Status</label>
-    <div class="status-row">
-      <button class="status-btn aktywne sel" data-val="Aktywne">🟢 Aktywne</button>
-      <button class="status-btn wydane" data-val="Wydane">🟡 Wydane</button>
-      <button class="status-btn zwrocone" data-val="Zwrocone">⚫ Zwrócone</button>
-    </div>
-  </div>
-
-  <div class="field">
-    <label>Zwrot kaucji (zł)</label>
-    <input type="number" id="f-zwrot-kaucji" placeholder="0" inputmode="numeric">
-  </div>
-  <div class="field">
-    <label>Uwagi</label>
-    <textarea id="f-uwagi" placeholder="Dodatkowe informacje..."></textarea>
-  </div>
-
-  <button class="btn" id="btn-zapisz">Zapisz zlecenie → Google Sheets</button>
-  <div class="sync-info" id="form-info"></div>
-</div>
-
-<div class="page" id="page-lista">
-  <div style="height:12px"></div>
-  <div class="search-wrap">
-    <input type="text" id="search" placeholder="🔍 Szukaj klienta...">
-  </div>
-  <div class="filter-row">
-    <button class="filter-btn active" data-filter="wszystkie">Wszystkie</button>
-    <button class="filter-btn" data-filter="Aktywne">🟢 Aktywne</button>
-    <button class="filter-btn" data-filter="Wydane">🟡 Wydane</button>
-    <button class="filter-btn" data-filter="Zwrocone">⚫ Zwrócone</button>
-  </div>
-  <button class="btn btn-outline" id="btn-odswiez" style="margin-bottom:12px">↻ Odśwież z Google Sheets</button>
-  <div id="lista-content"><div class="loading">Ładowanie...</div></div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0W0VVazlJn8upFxV8aZwj7Ixq2o1UrwQBj7VDUU4oyIwYCrYu126caqQs7eCUwT3erw/exec';
-
-var selectedStatus = 'Aktywne';
-var currentFilter = 'wszystkie';
-var currentSearch = '';
-var zlecenia = [];
-
-// Set today
-var today = new Date();
-var dd = today.getFullYear()+'-'+(today.getMonth()<9?'0':'')+(today.getMonth()+1)+'-'+(today.getDate()<10?'0':'')+today.getDate();
-document.getElementById('f-odbioru').value = dd;
-
-// Tabs
-document.getElementById('tab-btn-nowe').addEventListener('click', function() { showTab('nowe'); });
-document.getElementById('tab-btn-lista').addEventListener('click', function() { showTab('lista'); loadZlecenia(); });
-
-function showTab(name) {
-  ['nowe','lista'].forEach(function(n) {
-    document.getElementById('page-'+n).classList.remove('active');
-    document.getElementById('tab-btn-'+n).classList.remove('active');
-  });
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('tab-btn-'+name).classList.add('active');
-}
-
-// Status buttons
-document.querySelector('.status-row').addEventListener('click', function(e) {
-  var btn = e.target.closest('.status-btn');
-  if (!btn) return;
-  document.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('sel'); });
-  btn.classList.add('sel');
-  selectedStatus = btn.getAttribute('data-val');
-});
-
-// Filter buttons
-document.querySelector('.filter-row').addEventListener('click', function(e) {
-  var btn = e.target.closest('.filter-btn');
-  if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-  btn.classList.add('active');
-  currentFilter = btn.getAttribute('data-filter');
-  renderLista();
-});
-
-document.getElementById('search').addEventListener('input', function() {
-  currentSearch = this.value.toLowerCase();
-  renderLista();
-});
-
-// Toast
-function showToast(msg, isError) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (isError ? ' error' : '');
-  setTimeout(function() { t.className = 'toast'; }, 3000);
-}
-
-// Zapisz
-document.getElementById('btn-zapisz').addEventListener('click', function() {
-  var klient = document.getElementById('f-klient').value.trim();
-  var telefon = document.getElementById('f-telefon').value.trim();
-  var co = document.getElementById('f-co').value.trim();
-
-  if (!klient || !telefon || !co) {
-    showToast('Uzupełnij: klient, telefon, co bierze', true);
-    return;
-  }
-
-  var btn = document.getElementById('btn-zapisz');
-  btn.disabled = true;
-  btn.textContent = 'Zapisywanie...';
-  document.getElementById('form-info').textContent = '';
-
-  var data = {
-    klient: klient,
-    telefon: telefon,
-    co_bierze: co,
-    ilosc: document.getElementById('f-ilosc').value || '',
-    policzone: document.getElementById('f-policzone').value || '',
-    zaplacone: document.getElementById('f-zaplacone').value || '',
-    kaucja: document.getElementById('f-kaucja').value || '',
-    data_odbioru: document.getElementById('f-odbioru').value || '',
-    data_zwrotu: document.getElementById('f-zwrotu').value || '',
-    zwrot_kaucji: document.getElementById('f-zwrot-kaucji').value || '',
-    status: selectedStatus,
-    uwagi: document.getElementById('f-uwagi').value || ''
-  };
-
-  // iframe trick to bypass CORS
-  var iframe = document.getElementById('hidden-iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'hidden-iframe';
-    iframe.name = 'hidden-iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = SCRIPT_URL;
-  form.target = 'hidden-iframe';
-  form.style.display = 'none';
-  Object.keys(data).forEach(function(key) {
-    var inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = key;
-    inp.value = data[key];
-    form.appendChild(inp);
-  });
-  document.body.appendChild(form);
-  setTimeout(function() {
-    showToast('✅ Wysłano! Sprawdź arkusz za chwilę.');
-    document.getElementById('form-info').textContent = 'Wysłano do Google Sheets';
-    document.getElementById('form-info').className = 'sync-info ok';
-    ['f-klient','f-telefon','f-co','f-ilosc','f-policzone','f-zaplacone','f-kaucja','f-zwrotu','f-zwrot-kaucji','f-uwagi'].forEach(function(id) {
-      document.getElementById(id).value = '';
-    });
-    document.getElementById('f-odbioru').value = dd;
-    btn.disabled = false;
-    btn.textContent = 'Zapisz zlecenie → Google Sheets';
-    if (form.parentNode) document.body.removeChild(form);
-  }, 3000);
-  form.submit();
-});
-
-// Odśwież
-document.getElementById('btn-odswiez').addEventListener('click', loadZlecenia);
-
-function loadZlecenia() {
-  document.getElementById('lista-content').innerHTML = '<div class="loading">Ładowanie z Google Sheets...</div>';
-  document.getElementById('sync-status').textContent = '●';
-  document.getElementById('sync-status').style.color = '#999';
-
-  fetch(SCRIPT_URL)
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    // Skip header row
-    if (data.length > 1) {
-      zlecenia = data.slice(1).map(function(row, i) {
-        return {
-          lp: row[0] || i+1,
-          klient: row[1] || '',
-          telefon: row[2] || '',
-          co_bierze: row[3] || '',
-          ilosc: row[4] || '',
-          data_odbioru: row[5] || '',
-          data_zwrotu: row[6] || '',
-          policzone: row[7] || '',
-          zaplacone: row[8] || '',
-          kaucja: row[9] || '',
-          zwrot_kaucji: row[10] || '',
-          status: row[11] || 'Aktywne',
-          uwagi: row[12] || '',
-          data_wpisu: row[13] || ''
-        };
-      });
-    } else {
-      zlecenia = [];
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.openById('1dJZoXlsc3PNhN8NussOqv7v9VcWe2voiSZ4mqf_uA58').getActiveSheet();
+    
+    var d = e.parameter;
+    
+    // Aktualizacja statusu
+    if (d.action === 'update_status') {
+      var lp = parseInt(d.lp);
+      var data = sheet.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) {
+        if (parseInt(data[i][0]) === lp) {
+          sheet.getRange(i+1, 12).setValue(d.status);
+          return HtmlService.createHtmlOutput('OK');
+        }
+      }
+      return HtmlService.createHtmlOutput('Not found');
     }
-    document.getElementById('sync-status').textContent = '●';
-    document.getElementById('sync-status').style.color = '#1a5c35';
-    renderLista();
-  })
-  .catch(function() {
-    document.getElementById('lista-content').innerHTML = '<div class="empty">Błąd połączenia z Google Sheets.<br>Sprawdź internet i spróbuj ponownie.</div>';
-    document.getElementById('sync-status').textContent = '●';
-    document.getElementById('sync-status').style.color = '#9b2226';
-  });
-}
-
-function renderLista() {
-  var filtered = zlecenia.filter(function(z) {
-    var matchFilter = currentFilter === 'wszystkie' || z.status === currentFilter;
-    var matchSearch = !currentSearch || z.klient.toLowerCase().includes(currentSearch) || z.telefon.includes(currentSearch);
-    return matchFilter && matchSearch;
-  });
-
-  if (!filtered.length) {
-    document.getElementById('lista-content').innerHTML = '<div class="empty">Brak zleceń.<br>Dodaj pierwsze zlecenie<br>w zakładce "Nowe zlecenie".</div>';
-    return;
-  }
-
-  var html = '<div style="font-size:12px;color:#999;margin-bottom:8px">'+filtered.length+' zleceń</div>';
-  filtered.slice().reverse().forEach(function(z) {
-    var statusCls = z.status === 'Aktywne' ? 'aktywne' : z.status === 'Wydane' ? 'wydane' : 'zwrocone';
-    var pozostalo = '';
-    if (z.policzone && z.zaplacone) {
-      var diff = parseFloat(z.policzone) - parseFloat(z.zaplacone);
-      if (diff > 0) pozostalo = '<span style="color:#9b2226;font-weight:700">Do zapłaty: '+diff+' zł</span>';
-      else if (diff === 0) pozostalo = '<span style="color:#1a5c35;font-weight:700">Opłacone ✓</span>';
+    
+    // Nowe zlecenie
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['LP','Klient','Telefon','Co bierze','Ilosc','Data odbioru','Data zwrotu','Policzone','Zaplacone','Kaucja','Zwrot kaucji','Status','Uwagi','Data wpisu']);
     }
-    html += '<div class="zlecenie-card">'+
-      '<div class="zcard-top">'+
-        '<div>'+
-          '<div class="zcard-name">'+z.klient+'</div>'+
-          '<div class="zcard-tel">📞 '+z.telefon+'</div>'+
-        '</div>'+
-        '<span class="zcard-status '+statusCls+'">'+z.status+'</span>'+
-      '</div>'+
-      '<div class="zcard-details">'+
-        (z.co_bierze ? '<div>📦 <b>'+z.co_bierze+'</b></div>' : '')+
-        (z.data_odbioru ? '<div>📅 Odbiór: <b>'+z.data_odbioru+'</b>'+(z.data_zwrotu?' → Zwrot: <b>'+z.data_zwrotu+'</b>':'')+'</div>' : '')+
-        (z.policzone ? '<div>💰 Policzone: <b>'+z.policzone+' zł</b> | Zapłacone: <b>'+(z.zaplacone||'0')+' zł</b></div>' : '')+
-        (z.kaucja ? '<div>🔐 Kaucja: <b>'+z.kaucja+' zł</b>'+(z.zwrot_kaucji?' | Zwrot: <b>'+z.zwrot_kaucji+' zł</b>':'')+'</div>' : '')+
-        (pozostalo ? '<div>'+pozostalo+'</div>' : '')+
-        (z.uwagi ? '<div>📝 '+z.uwagi+'</div>' : '')+
-      '</div>'+
-      '<div class="zcard-footer">'+
-        '<button class="zcard-btn" onclick="zadzwon(\''+z.telefon+'\')">📞 Zadzwoń</button>'+
-        '<button class="zcard-btn" onclick="whatsapp(\''+z.telefon+'\',\''+z.klient+'\')">WhatsApp</button>'+
-      '</div>'+
-    '</div>';
-  });
-  document.getElementById('lista-content').innerHTML = html;
+    
+    sheet.appendRow([
+      sheet.getLastRow(),
+      d.klient||'', d.telefon||'', d.co_bierze||'',
+      d.ilosc||'', d.data_odbioru||'', d.data_zwrotu||'',
+      d.policzone||'', d.zaplacone||'', d.kaucja||'',
+      d.zwrot_kaucji||'', d.status||'Aktywne', d.uwagi||'',
+      new Date().toLocaleDateString('pl-PL')
+    ]);
+    
+    return HtmlService.createHtmlOutput('OK');
+  } catch(err) {
+    return HtmlService.createHtmlOutput('Error: ' + err.toString());
+  }
 }
 
-function zadzwon(tel) {
-  window.location.href = 'tel:'+tel.replace(/\s/g,'');
+function doGet(e) {
+  var sheet = SpreadsheetApp.openById('1dJZoXlsc3PNhN8NussOqv7v9VcWe2voiSZ4mqf_uA58').getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
-
-function whatsapp(tel, klient) {
-  var msg = 'Dzien dobry ' + klient + ', kontaktujemy sie w sprawie wypozyczenia z By Megi.';
-  window.open('https://wa.me/48'+tel.replace(/\D/g,'').replace(/^0/,'')+' ?text='+encodeURIComponent(msg), '_blank');
-}
-
-// Auto load lista on start
-loadZlecenia();
-</script>
-</body>
-</html>
